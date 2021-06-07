@@ -35,10 +35,14 @@ app.use(cookieParser());
 
 app.use('/api/users', require('./routes/users'));
 app.use('/api/videos',require('./routes/video'))
+app.use('/api/subscriber',require('./routes/subscriber'))
+
 
 //use this to show the image you have in node js server to client (react js)
 //https://stackoverflow.com/questions/48914987/send-image-path-from-node-js-express-server-to-react-client
 app.use('/uploads', express.static('uploads'));
+app.use('/thumbanils', express.static('thumbanils'));
+
 
 // Serve static assets if in production
 if (process.env.NODE_ENV === "production") {

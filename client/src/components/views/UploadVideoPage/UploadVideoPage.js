@@ -1,13 +1,16 @@
 import React, {useState, useEffect} from 'react'
-import {Typography, Button, Form, message, Input, Icon, Select} from 'antd'
+import {Typography, Button, Form,  Input, Icon, Spin} from 'antd'
+import {useSelector} from 'react-redux'
 import Dropzone from 'react-dropzone';
 import axios from 'axios'
 const { Title } = Typography;
 const { TextArea } = Input;
-const { Option } = Select;
-const UploadVideoPage = () => {
+const UploadVideoPage = (props) => {
     const [title, setTitle] = useState('')
     const [descrption, setDescription] = useState('')
+    const [duration, setDuration] = useState("")
+    const [thumbnails, setThumbnails] = useState("")
+    const [spinner, setSpinner] = useState(false)
     const [video_status, setideo_status] = useState([
         {value:0, label:'Private'},
         {value:1, label:'Public'}
@@ -23,6 +26,7 @@ const UploadVideoPage = () => {
     const [category, setCategory] = useState(0)
     const [filePath, setFilePath] = useState("")
     const onDrop = (files) => {
+        setSpinner(true)
         let formData = new FormData();
         const config ={
             header: {'content-type':'multipart/form-data'}
@@ -33,7 +37,7 @@ const UploadVideoPage = () => {
             formData.append('file',files[0])
             axios.post('/api/videos/uploadfiles',formData,config)
             .then(resp => {
-                console.log(resp)
+ 
                 if(resp.data.success){
                     let variable = {
                         filePath : resp.data.filePath,
@@ -41,7 +45,16 @@ const UploadVideoPage = () => {
                     }
                     setFilePath(resp.data.filePath)
 
-                    //generateThumbnail
+                    axios.post('/api/videos/thumbnail', variable)
+                    .then(resp=>{
+                        if(resp.status === 200){
+                            setSpinner(false)
+                            setDuration(resp.data.fileDuration)
+                            setThumbnails(resp.data.thumbsFilePath)
+                        }else{
+                            alert("Failed to created thumbnail")
+                        }
+                    })
 
                 }else{
                     alert("Failed to save video")
@@ -52,15 +65,47 @@ const UploadVideoPage = () => {
         }
 
     }
+    const user = useSelector(state =>state.user)
+
+    const onFormSubmit = (e) =>{
+
+        e.preventDefault()
+        if(user.userData && !user.userData.isAuth){
+            return alert('Login First')
+        }
+        if(filePath === "") return alert("Please Select Files")
+        if(title === "" || descrption === ""){
+            return alert("Please fill title and description")
+        }
+        let variables = {
+            writer: user.userData._id,
+            title: title,
+            description: descrption,
+            privacy: status,
+            filePath: filePath,
+            category: category,
+            duration: duration,
+            thumbnail: thumbnails,
+        }
+        axios.post('/api/videos/uploadVideos',variables)
+        .then(resp=>{
+            if(resp.status === 200){
+                    alert("Video Successfully Uploaded")
+                    props.history.push('/')
+            }else{
+                alert('Failed to upload video')
+            }
+        })
+    }
 
     return (
         <div style={{maxWidth:"700px", margin:'2rem auto'}}>
             <div style={{textAlign:'center', marginBottom: '2rem'}}>
                 <Title>Upload Video</Title>
             </div>
-            <Form>
+            <Form >
                 <div >
-                <div style={{marginTop:"40px"}}>
+                <div style={{marginTop:"40px", display:'flex', justifyContent:'space-around'}}>
                 <Dropzone 
                     multiple={false}
                     maxSize={80000000} onDrop={onDrop}>
@@ -75,6 +120,15 @@ const UploadVideoPage = () => {
                         </div>
                     )}
                 </Dropzone>
+                {thumbnails?.length > 0 && <div>
+                        <img src={`http://localhost:5000/${thumbnails}`} style={{width:"200px",height:"200px"}}/>
+                </div> }
+                {
+                    spinner &&   <div style={{display:'flex', justifyContent:"around", alignContent:"center", width:"200px",height:"200px" }}>
+                   
+                    <Spin size="large" />
+                  </div>
+                }
                 </div>
                 </div>
 
@@ -106,7 +160,7 @@ const UploadVideoPage = () => {
                     </select>
                 </div>
                 <div style={{marginTop:"40px"}}>
-                <Button type="primary" size="large" >
+                <Button type="primary" size="large" onClick={onFormSubmit} >
                 Submit
             </Button>
                 </div>
