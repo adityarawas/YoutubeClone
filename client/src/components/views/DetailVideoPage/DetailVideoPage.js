@@ -4,6 +4,7 @@ import React, {useEffect, useState} from 'react'
 import {Link, useParams} from 'react-router-dom'
 import SideVideos from './Section/SideVideos'
 import Subscribe from './Section/Subscribe'
+import Comments from './Section/Comments'
 import {useSelector} from 'react-redux'
 
 const DetailVideoPage = (props) => {
@@ -12,7 +13,11 @@ const DetailVideoPage = (props) => {
     let { videoId } = useParams()
     const [details, setdetails] = useState({})
     const [videos, setVideos] = useState({})
-
+    const [commentList,setComments] = useState([])
+    const updateComment= (comment) =>{
+        console.log(comment)
+        setComments([...commentList, comment])
+    }
 
     useEffect(() => {
 
@@ -22,7 +27,6 @@ const DetailVideoPage = (props) => {
         axios.post('/api/videos/getVideo',variables)
         .then(resp =>{
             if(resp){
-                console.log(resp.data.video)
                 setdetails(resp.data?.video)
             }
 
@@ -34,13 +38,22 @@ const DetailVideoPage = (props) => {
 
         axios.post('/api/videos/getSideVideos',variables)
         .then(resp =>{
-            console.log(resp)
             if(resp.status===200){
                     setVideos(resp.data.videos)
             }else{
                 alert('Failed to get videos')
             }
         })
+
+        axios.post('/api/comments/getComments',variables)
+        .then(resp =>{
+            if(resp.status===200){
+            }else{
+                alert('Failed to get videos')
+            }
+        })
+
+
 
     }, [videoId])
 
@@ -49,20 +62,22 @@ const DetailVideoPage = (props) => {
             <Col lg={18} xs={24}>
         <div style={{width:'100%', padding:'3rem 4rem'}}>
             <video style={{width:'100%'}} src={`http://localhost:5000/${details.filePath}`}  controls/>
-            {/* [<LikeDislikes video videoId={postId} userId={localStorage.getItem('userId')} />] */}
             <List.Item action={[<Subscribe />]} >
                 <List.Item.Meta avatar={<Avatar src={details?.writer?.image} />}
                 title={<a href="" >{details?.title}</a>}
                 description={details?.description} />
                 <Subscribe userTo={details?.writer?._id} userFrom={user?.userData?._id}/>
             </List.Item>
+            
+            <Comments commentList={commentList} postId={details._id} updateComment={updateComment}/>
+
         </div>
         </Col>
         <Col lg={6} xs={24}>
             <div style={{marginTop:"2rem"}}>
        
         {
-            videos?.length && videos.map(i=> <Link to={`/video/${i._id}`}><SideVideos video={i}/></Link>)
+            videos?.length && videos.map((i,idx)=> <Link to={`/video/${i._id}`} key={idx}><SideVideos video={i}/></Link>)
         }
         
         </div>

@@ -4,6 +4,8 @@ const multer = require('multer')
 const path = require('path');
 const ffmpeg = require('fluent-ffmpeg')
 const {Videos} = require('../models/Video')
+const Subscriber  = require('../models/Subscribers');
+
 //=================================
 //             VIDEOS
 //=================================
@@ -77,6 +79,20 @@ router.get('/getVideos',(req,res)=>{
     Videos.find({privacy:1}).populate('writer','-password').exec((err, videos)=>{
         if(err) return res.status(500).json({err:err})
         res.status(200).json({success:true,videos})
+    })
+});
+
+router.post('/getSubscribedVideos',(req,res)=>{
+    const {userFrom} = req.body
+    Subscriber.find({'userFrom':userFrom}).exec((err,subscribers)=>{
+       if(err) return res.status(500).json({err});
+        let subUser = []
+        subscribers.map(i=>subUser.push(i.userTo))
+        Videos.find({writer:{$in : subUser}}).populate('writer','-password')
+        .exec((err, videos)=>{
+            if(err) return res.status(500).send(err);
+            res.status(200).json({videos:videos})
+        })
     })
 });
 
