@@ -12,8 +12,9 @@ const commentSchema = Schema({
     },
     responseTo:{
         type:Schema.Types.ObjectId,
-        ref:'User'
+        ref:'Comments'
     },
+
     comment:String
 },{
     timestamp:true

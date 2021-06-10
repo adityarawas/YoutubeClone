@@ -4,7 +4,7 @@ import axios from 'axios';
 import {useSelector} from 'react-redux'
 import CommentList from './commentList'
 const {TextArea} = Input;
-const Comments = ({postId, updateComment, commentList}) => {
+const Comments = ({postId, updateComment, commentList, style}) => {
     const user = useSelector(state => state.user)
     const [comment, setComment] = useState("")
     const handelCommentChange = (e) =>{
@@ -27,8 +27,8 @@ const submitComments = (e) =>{
         })
 }
     return (
-        <div>
-            <p>replies</p>
+        <div style={{...style}}>
+            <p>Comments</p>
 
             {
                 commentList?.length && commentList.map((i,idx)=>

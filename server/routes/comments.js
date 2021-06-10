@@ -12,7 +12,21 @@ router.post('/saveComment',(req, res)=>{
 });
 
 router.post('/getComments',(req, res)=>{
-        console.log(req.body)
+       Comments.find({"postId":req.body.videoId})
+       .populate('writer','-password')
+       .exec((err, comment)=>{
+            if (err) return res.json({err})
+            res.status(200).json(comment)
+       })
+});
+
+router.post('/getreplies',(req, res)=>{
+    Comments.find({"responseTo":req.body.responseTo})
+    .populate('writer','-password')
+    .exec((err, comment)=>{
+         if (err) return res.json({err})
+         res.status(200).json(comment)
+    })
 });
 
 

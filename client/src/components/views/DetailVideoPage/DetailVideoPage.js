@@ -5,6 +5,7 @@ import {Link, useParams} from 'react-router-dom'
 import SideVideos from './Section/SideVideos'
 import Subscribe from './Section/Subscribe'
 import Comments from './Section/Comments'
+import LikeDisLike from './Section/LikeDisLike'
 import {useSelector} from 'react-redux'
 
 const DetailVideoPage = (props) => {
@@ -45,9 +46,10 @@ const DetailVideoPage = (props) => {
             }
         })
 
-        axios.post('/api/comments/getComments',variables)
+        axios.post('/api/comment/getComments',variables)
         .then(resp =>{
             if(resp.status===200){
+                setComments(resp?.data)
             }else{
                 alert('Failed to get videos')
             }
@@ -62,14 +64,15 @@ const DetailVideoPage = (props) => {
             <Col lg={18} xs={24}>
         <div style={{width:'100%', padding:'3rem 4rem'}}>
             <video style={{width:'100%'}} src={`http://localhost:5000/${details.filePath}`}  controls/>
-            <List.Item action={[<Subscribe />]} >
+            <List.Item action={[<Subscribe userTo={details?.writer?._id} userFrom={user?.userData?._id}/>,<LikeDisLike />]} >
                 <List.Item.Meta avatar={<Avatar src={details?.writer?.image} />}
                 title={<a href="" >{details?.title}</a>}
                 description={details?.description} />
+                <LikeDisLike video videoId={videoId} userId={localStorage.getItem('userId')}/>
                 <Subscribe userTo={details?.writer?._id} userFrom={user?.userData?._id}/>
             </List.Item>
-            
-            <Comments commentList={commentList} postId={details._id} updateComment={updateComment}/>
+            <hr/>
+            <Comments commentList={commentList} postId={details._id} updateComment={updateComment} style={{marginLeft:"2rem"}}/>
 
         </div>
         </Col>
